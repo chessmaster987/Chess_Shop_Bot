@@ -18,7 +18,30 @@ def get_text(message):
       inline_keyboard = types.InlineKeyboardMarkup()
       inline_keyboard.add(types.InlineKeyboardButton('Chess boards', callback_data='chess_board'), 
                           types.InlineKeyboardButton('Chess pieces', callback_data='chess_piece'))
-      inline_keyboard.add(types.InlineKeyboardButton('chess clocks', callback_data='chess_clock'))
-      bot.send_message(message.chat.id, "Оберіть категорію товарів:", reply_markup=inline_keyboard)
+      inline_keyboard.add(types.InlineKeyboardButton('Chess clocks', callback_data='chess_clock'))
+      bot.send_message(message.chat.id, "Select a items category:", reply_markup=inline_keyboard)
 
+@bot.callback_query_handler(lambda a: True)
+def get_query(query):
+   print(query.data)
+   if query.data == 'chess_board':
+      sub_inline_keyboard = types.InlineKeyboardMarkup()
+      sub_inline_keyboard.add(types.InlineKeyboardButton('Classic', callback_data='board_classic'),
+                              types.InlineKeyboardButton('3 players', callback_data='board_3p'))
+      sub_inline_keyboard.add(types.InlineKeyboardButton('4 players', callback_data='board_4p'),
+                              types.InlineKeyboardButton('Customise', callback_data='board_custom'))
+
+      bot.send_message(query.message.chat.id, "Select a items subcategory:", reply_markup=sub_inline_keyboard)
+   elif query.data == 'chess_piece':
+      sub_inline_keyboard = types.InlineKeyboardMarkup()
+      sub_inline_keyboard.add(types.InlineKeyboardButton('Classic pieces', callback_data='pieces_classic'),
+                              types.InlineKeyboardButton('Stylised for the royal period', callback_data='pieces_royal'))
+      sub_inline_keyboard.add(types.InlineKeyboardButton('From the Harry Potter movie', callback_data='pieces_Potter'))
+      bot.send_message(query.message.chat.id, "Select a items subcategory:", reply_markup=sub_inline_keyboard)
+   elif query.data == 'chess_clock':
+      sub_inline_keyboard = types.InlineKeyboardMarkup()
+      sub_inline_keyboard.add(types.InlineKeyboardButton('Mechanical clock', callback_data='clock_mechanical'),
+                              types.InlineKeyboardButton('Electronic clock', callback_data='clock_electronic'))
+      bot.send_message(query.message.chat.id, "Select a items subcategory:", reply_markup=sub_inline_keyboard)
+         
 bot.polling()

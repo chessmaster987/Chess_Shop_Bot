@@ -4,11 +4,25 @@ from os import listdir
 from random import randint
 
 # Replace YOUR_TOKEN with the token provided by BotFather
-bot = telebot.TeleBot('[YOUR_TOKEN]')
+bot = telebot.TeleBot('5834213515:AAGcY0eXSVkza_-MHv0tzoyzXPMEoxcsb3k')
 
 main_keyboard = types.ReplyKeyboardMarkup().add("Shop items", "Share this bot")
 
 list_curent_id = []
+
+# Dictionary mapping query.data to folder paths
+category_paths = {
+    'board_classic': 'imgs/boards/classic',
+    'board_3p': 'imgs/boards/3p',
+    'board_4p': 'imgs/boards/4p',
+    'board_custom': 'imgs/boards/custom',
+    'pieces_classic': 'imgs/pieces/classic',
+    'pieces_royal': 'imgs/pieces/royal',
+    'pieces_Potter': 'imgs/pieces/potter',
+    'clock_mechanical': 'imgs/clocks/mechanical',
+    'clock_electronic': 'imgs/clocks/electronic',
+    'clock_custom': 'imgs/clocks/custom'
+}
 
 def reader(list_p, name_p, ades, mode):
    #list_p - list of product resources
@@ -17,8 +31,10 @@ def reader(list_p, name_p, ades, mode):
    #mode - file reading mode
 
    logic = False if 'rb' in mode else True
-
-   with open(f'{ades}/{ [el for el in list_p if name_p in el and (".txt" in el) == logic ][0] }', mode, encoding='utf-8' if logic else None) as ph:
+   filtered_list = [el for el in list_p if name_p in el and (".txt" in el) == logic]
+   if not filtered_list:
+      raise FileNotFoundError(f"No file found for {name_p} in {ades}")
+   with open(f'{ades}/{filtered_list[0]}', mode, encoding='utf-8' if logic else None) as ph:
       return ph.read()
 
 def load_prod(address, chat_id):
@@ -43,7 +59,7 @@ def load_prod(address, chat_id):
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
    first_name = message.chat.first_name
-   photo = open(r"Hillel_online_course_PYTHON/logo.jpg", 'rb')
+   photo = open(r"imgs/logo.jpg", 'rb')
    if message.text == '/start':
       bot.send_photo(message.chat.id, photo=photo)
       bot.reply_to(message, f'{first_name}, welcome to the Chess Shop. Enjoy it!')
@@ -88,7 +104,7 @@ def get_query(query):
                               types.InlineKeyboardButton('3 players', callback_data='board_3p'))
       sub_inline_keyboard.add(types.InlineKeyboardButton('4 players', callback_data='board_4p'),
                               types.InlineKeyboardButton('Customise', callback_data='board_custom'))   
-   
+
       del_mes(query.message.chat.id)
 
       list_curent_id.append(
@@ -121,21 +137,10 @@ def get_query(query):
                          "Select a items subcategory:",
                          reply_markup=sub_inline_keyboard).message_id
       )
-
-  
    
-   elif query.data == 'board_classic' or query.data == 'board_3p' or query.data == 'board_4p' or query.data == 'board_custom':
-      del_mes(query.message.chat.id)
-      load_prod('Hillel_online_course_PYTHON/chess_shop/boards', query.message.chat.id)
-
-   
-   elif query.data == 'pieces_classic' or query.data == 'pieces_royal' or query.data == 'pieces_Potter':
-      del_mes(query.message.chat.id)
-      load_prod('Hillel_online_course_PYTHON/chess_shop/pieces', query.message.chat.id)
-   
-   elif query.data == 'clock_mechanical' or query.data == 'clock_electronic' or query.data == 'clock_custom':
-      del_mes(query.message.chat.id)
-      load_prod('Hillel_online_course_PYTHON/chess_shop/clocks', query.message.chat.id)
+   elif query.data in category_paths:
+        del_mes(query.message.chat.id)
+        load_prod(category_paths[query.data], query.message.chat.id)
 
    elif query.data == 'pay':
       id_code = '#'

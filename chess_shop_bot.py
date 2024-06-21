@@ -4,7 +4,7 @@ from os import listdir
 from random import randint
 
 # Replace YOUR_TOKEN with the token provided by BotFather
-bot = telebot.TeleBot('5834213515:AAGcY0eXSVkza_-MHv0tzoyzXPMEoxcsb3k')
+bot = telebot.TeleBot('[here paste your token]')
 
 main_keyboard = types.ReplyKeyboardMarkup().add("Shop items", "Share this bot")
 

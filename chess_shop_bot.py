@@ -1,10 +1,20 @@
+#import telebot
+#from telebot import types
+#from os import listdir
+#from random import randint
+
 import telebot
 from telebot import types
 from os import listdir
 from random import randint
+from flask import Flask, request
+import os
+
+TOKEN = os.environ.get("BOT_TOKEN")  # краще через змінні середовища Render
+bot = telebot.TeleBot(TOKEN)
 
 # Replace YOUR_TOKEN with the token provided by BotFather
-bot = telebot.TeleBot('[here paste your token]')
+#bot = telebot.TeleBot('[here paste your token]')
 
 main_keyboard = types.ReplyKeyboardMarkup().add("Shop items", "Share this bot")
 
@@ -152,5 +162,26 @@ def get_query(query):
                          f'''Your order number: {id_code}'''
                         )
       
-bot.polling()
+# ==============================
+# Flask + webhook для Render
+# ==============================
 
+app = Flask(__name__)
+
+APP_URL = os.environ.get("APP_URL")  # додай цю змінну у Render → Environment
+
+@app.route("/" + TOKEN, methods=["POST"])
+def getMessage():
+   json_str = request.get_data().decode("UTF-8")
+   update = telebot.types.Update.de_json(json_str)
+   bot.process_new_updates([update])
+   return "!", 200
+
+@app.route("/")
+def webhook():
+   bot.remove_webhook()
+   bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
+   return "Bot is running!", 200
+
+if __name__ == "__main__":
+   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

@@ -10,6 +10,9 @@ from random import randint
 from flask import Flask, request
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
+
 TOKEN = os.environ.get("BOT_TOKEN")  # краще через змінні середовища Render
 bot = telebot.TeleBot(TOKEN)
 
@@ -68,12 +71,11 @@ def load_prod(address, chat_id):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-   first_name = message.chat.first_name
-   photo = open(r"imgs/logo.jpg", 'rb')
-   if message.text == '/start':
-      bot.send_photo(message.chat.id, photo=photo)
-      bot.reply_to(message, f'{first_name}, welcome to the Chess Shop. Enjoy it!')
-   bot.send_message(message.chat.id, "Please choose an option:", reply_markup=main_keyboard)
+    first_name = message.chat.first_name or ""
+    with open("imgs/logo.jpg", 'rb') as photo:
+        bot.send_photo(message.chat.id, photo)
+    bot.reply_to(message, f"{first_name}, welcome to the Chess Shop. Enjoy it!")
+    bot.send_message(message.chat.id, "Please choose an option:", reply_markup=main_keyboard)
 
 def del_mes(chat_id):
    global list_curent_id
@@ -184,4 +186,14 @@ def webhook():
    return "Bot is running!", 200
 
 if __name__ == "__main__":
-   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    is_render = os.environ.get("RENDER", "false").lower() == "true"
+    port = int(os.environ.get("PORT", 5000))
+
+    if is_render:
+        print("🌐 Running on Render with webhook...")
+        app.run(host="0.0.0.0", port=port)
+    else:
+        print("💻 Running locally with polling...")
+        bot.remove_webhook()
+        bot.polling(none_stop=True, interval=0)
+

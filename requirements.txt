@@ -1,3 +1,4 @@
 pytelegrambotapi
 Flask
 gunicorn
+python-dotenv

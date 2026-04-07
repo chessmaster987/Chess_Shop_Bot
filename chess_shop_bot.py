@@ -196,4 +196,3 @@ if __name__ == "__main__":
         print("💻 Running locally with polling...")
         bot.remove_webhook()
         bot.polling(none_stop=True, interval=0)
-

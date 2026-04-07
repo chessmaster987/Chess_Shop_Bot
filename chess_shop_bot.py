@@ -67,7 +67,7 @@ def load_prod(address, chat_id):
                        reply_markup=pay_keyb
                        ).message_id
         )
-
+'''
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     first_name = message.chat.first_name or ""
@@ -75,7 +75,8 @@ def send_welcome(message):
         bot.send_photo(message.chat.id, photo)
     bot.reply_to(message, f"{first_name}, welcome to the Chess Shop. Enjoy it!")
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=main_keyboard)
-
+'''
+    
 def del_mes(chat_id):
    global list_curent_id
    for id_mes in list_curent_id:
@@ -174,7 +175,8 @@ app = Flask(__name__)
 # =========================
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Welcome to Chess Shop!")
+   first_name = message.chat.first_name or ""
+   bot.reply_to(message, f"{first_name}, welcome to Chess Shop!")
 
 # =========================
 # ROUTE ДЛЯ TELEGRAM
@@ -187,17 +189,25 @@ def telegram_webhook():
     bot.process_new_updates([update])
     return "OK", 200
 
+'''
 # ====== set webhook manually ======
 @app.route("/")
 def set_webhook():
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
     return "Webhook set!", 200
-
+'''
+    
 # =========================
 # MAIN (Render)
 # =========================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print("🌐 Running on Render with webhook...")
+
+   # Автоматично видаляємо старий webhook та ставимо новий
+    bot.remove_webhook()
+    bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
+    print(f"✅ Webhook set to {APP_URL}/{TOKEN}")
+
     app.run(host="0.0.0.0", port=port)

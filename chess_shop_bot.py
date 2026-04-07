@@ -67,7 +67,7 @@ def load_prod(address, chat_id):
                        reply_markup=pay_keyb
                        ).message_id
         )
-'''
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     first_name = message.chat.first_name or ""
@@ -75,7 +75,6 @@ def send_welcome(message):
         bot.send_photo(message.chat.id, photo)
     bot.reply_to(message, f"{first_name}, welcome to the Chess Shop. Enjoy it!")
     bot.send_message(message.chat.id, "Please choose an option:", reply_markup=main_keyboard)
-'''
     
 def del_mes(chat_id):
    global list_curent_id
@@ -170,6 +169,8 @@ def get_query(query):
 
 app = Flask(__name__)
 
+'''
+
 # =========================
 # START MESSAGE
 # =========================
@@ -177,6 +178,8 @@ app = Flask(__name__)
 def send_welcome(message):
    first_name = message.chat.first_name or ""
    bot.reply_to(message, f"{first_name}, welcome to Chess Shop!")
+
+'''
 
 # =========================
 # ROUTE ДЛЯ TELEGRAM
@@ -197,6 +200,10 @@ def set_webhook():
     bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
     return "Webhook set!", 200
 '''
+
+@app.route("/", methods=["GET"])
+def index():
+    return "Chess Shop Bot is running!", 200
     
 # =========================
 # MAIN (Render)

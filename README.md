@@ -11,14 +11,14 @@ A Telegram bot for browsing chess products (boards, pieces, clocks) with a simpl
 
 ## 📖 Table of Contents
 
-- [Features](#features)
-- [Menu Structure](#menu-structure)
-- [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Common Issues](#common-issues)
-- [Tips](#tips)
-- [Author](#author)
+- [Features](#-features)
+- [Menu Structure](#-menu-structure)
+- [Project Structure](#-project-structure)
+- [Installation](#%EF%B8%8F-installation)
+- [Usage](#%EF%B8%8F-usage)
+- [Common Issues](#%EF%B8%8F-common-issues)
+- [Tips](#-tips)
+- [Author](#%E2%80%8D-author)
 
 ---
 

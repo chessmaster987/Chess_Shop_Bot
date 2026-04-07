@@ -173,29 +173,31 @@ app = Flask(__name__)
 
 APP_URL = os.environ.get("APP_URL")  # додай цю змінну у Render → Environment
 
+# =========================
+# ROUTE ДЛЯ TELEGRAM
+# =========================
 @app.route("/webhook", methods=["POST"])
-def getMessage():
-   print("🔥 TELEGRAM HIT")
-   json_str = request.get_data().decode("UTF-8")
-   print(json_str)
-   update = telebot.types.Update.de_json(json_str)
-   bot.process_new_updates([update])
-   return "OK", 200
+def telegram_webhook():
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "OK", 200
 
 @app.route("/")
-def webhook():
-   bot.remove_webhook()
-   bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
+def index():
    return "Bot is running!", 200
 
-if __name__ == "__main__":
-    is_render = True
-    port = int(os.environ.get("PORT", 5000))
+# =========================
+# START MESSAGE
+# =========================
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Welcome to Chess Shop!")
 
-    if is_render:
-        print("🌐 Running on Render with webhook...")
-        app.run(host="0.0.0.0", port=port)
-    else:
-        print("💻 Running locally with polling...")
-        bot.remove_webhook()
-        bot.polling(none_stop=True, interval=0)
+# =========================
+# MAIN (Render)
+# =========================
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    print("🌐 Running on Render with webhook...")
+    app.run(host="0.0.0.0", port=port)

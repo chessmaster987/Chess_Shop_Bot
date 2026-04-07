@@ -173,14 +173,14 @@ app = Flask(__name__)
 
 APP_URL = os.environ.get("APP_URL")  # додай цю змінну у Render → Environment
 
-@app.route("/" + TOKEN, methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 def getMessage():
    print("🔥 TELEGRAM HIT")
    json_str = request.get_data().decode("UTF-8")
    print(json_str)
    update = telebot.types.Update.de_json(json_str)
    bot.process_new_updates([update])
-   return "!", 200
+   return "OK", 200
 
 @app.route("/")
 def webhook():

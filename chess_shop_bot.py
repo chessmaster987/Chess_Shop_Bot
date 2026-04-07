@@ -176,7 +176,7 @@ APP_URL = os.environ.get("APP_URL")  # додай цю змінну у Render �
 # =========================
 # ROUTE ДЛЯ TELEGRAM
 # =========================
-@app.route("/webhook", methods=["POST"])
+@app.route(f"/{TOKEN}", methods=["POST"])
 def telegram_webhook():
     json_str = request.get_data().decode("UTF-8")
     update = telebot.types.Update.de_json(json_str)

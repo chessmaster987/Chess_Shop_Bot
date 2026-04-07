@@ -13,7 +13,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-TOKEN = os.environ.get("BOT_TOKEN")  # краще через змінні середовища Render
+TOKEN = os.environ.get("BOT_TOKEN") 
+print("TOKEN:", TOKEN)
 bot = telebot.TeleBot(TOKEN)
 
 # Replace YOUR_TOKEN with the token provided by BotFather
@@ -174,7 +175,9 @@ APP_URL = os.environ.get("APP_URL")  # додай цю змінну у Render �
 
 @app.route("/" + TOKEN, methods=["POST"])
 def getMessage():
+   print("🔥 TELEGRAM HIT")
    json_str = request.get_data().decode("UTF-8")
+   print(json_str)
    update = telebot.types.Update.de_json(json_str)
    bot.process_new_updates([update])
    return "!", 200

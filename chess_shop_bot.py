@@ -186,7 +186,7 @@ def webhook():
    return "Bot is running!", 200
 
 if __name__ == "__main__":
-    is_render = os.environ.get("RENDER", "false").lower() == "true"
+    is_render = True
     port = int(os.environ.get("PORT", 5000))
 
     if is_render:

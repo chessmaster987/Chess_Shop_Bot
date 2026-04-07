@@ -180,6 +180,7 @@ APP_URL = os.environ.get("APP_URL")  # додай цю змінну у Render �
 def telegram_webhook():
     json_str = request.get_data().decode("UTF-8")
     update = telebot.types.Update.de_json(json_str)
+    print("Received update:", update)
     bot.process_new_updates([update])
     return "OK", 200
 

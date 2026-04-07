@@ -203,6 +203,8 @@ def set_webhook():
 
 @app.route("/", methods=["GET"])
 def index():
+    print("BOT_TOKEN:", os.environ.get("BOT_TOKEN"))
+    print("APP_URL:", os.environ.get("APP_URL"))
     return "Chess Shop Bot is running!", 200
     
 # =========================

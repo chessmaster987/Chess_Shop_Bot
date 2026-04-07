@@ -1,31 +1,32 @@
 import os
+from os import listdir
+from random import randint
 from flask import Flask, request
 import telebot
 from telebot import types
-from os import listdir
-from random import randint
 from dotenv import load_dotenv
 
+# ==============================
+# Load environment variables
+# ==============================
 load_dotenv()
-
 TOKEN = os.environ.get("BOT_TOKEN")
 APP_URL = os.environ.get("APP_URL")
-
-print("BOT_TOKEN:", TOKEN)
+print("TOKEN:", TOKEN)
 print("APP_URL:", APP_URL)
 
 bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
 
-# =========================
-# Keyboard
-# =========================
-main_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-main_keyboard.add("Shop items", "Share this bot")
+# ==============================
+# Keyboards
+# ==============================
+main_keyboard = types.ReplyKeyboardMarkup().add("Shop items", "Share this bot")
 
-# =========================
-# Product folders
-# =========================
+# ==============================
+# Globals
+# ==============================
+list_curent_id = []
+
 category_paths = {
     'board_classic': 'imgs/boards/classic',
     'board_3p': 'imgs/boards/3p',
@@ -39,121 +40,137 @@ category_paths = {
     'clock_custom': 'imgs/clocks/custom'
 }
 
-# =========================
-# Store sent message IDs per chat
-# =========================
-sent_messages = {}
-
-def add_sent(chat_id, message_id):
-    sent_messages.setdefault(chat_id, []).append(message_id)
-
-def clear_sent(chat_id):
-    for msg_id in sent_messages.get(chat_id, []):
-        try:
-            bot.delete_message(chat_id, msg_id)
-        except Exception:
-            pass
-    sent_messages[chat_id] = []
-
-# =========================
-# Read files
-# =========================
-def reader(list_p, name_p, path, mode):
+# ==============================
+# Helper functions
+# ==============================
+def reader(list_p, name_p, ades, mode):
     logic = False if 'rb' in mode else True
-    filtered = [f for f in list_p if name_p in f and (".txt" in f) == logic]
-    if not filtered:
-        raise FileNotFoundError(f"No file for {name_p} in {path}")
-    with open(f"{path}/{filtered[0]}", mode, encoding=None if 'b' in mode else 'utf-8') as f:
-        return f.read() if 'b' not in mode else f.read()
+    filtered_list = [el for el in list_p if name_p in el and (".txt" in el) == logic]
+    if not filtered_list:
+        raise FileNotFoundError(f"No file found for {name_p} in {ades}")
+    with open(f'{ades}/{filtered_list[0]}', mode, encoding='utf-8' if logic else None) as ph:
+        return ph.read()
 
-def load_prod(path, chat_id):
-    files = listdir(path)
-    names = list({f.split('.')[0] for f in files})
-    for name in names:
+def load_prod(address, chat_id):
+    global list_curent_id
+    list_product = listdir(address)
+    list_uniq_name = list({el.split('.')[0] for el in list_product})
+
+    pay_keyb = types.InlineKeyboardMarkup()
+    pay_keyb.add(types.InlineKeyboardButton('Pay', callback_data='pay'))
+
+    for name_prod in list_uniq_name:
+        msg = bot.send_photo(
+            chat_id,
+            reader(list_product, name_prod, address, 'rb'),
+            caption=reader(list_product, name_prod, address, 'r'),
+            reply_markup=pay_keyb
+        )
+        list_curent_id.append(msg.message_id)
+
+def del_mes(chat_id):
+    global list_curent_id
+    for id_mes in list_curent_id:
         try:
-            caption = reader(files, name, path, 'r')
-            photo = reader(files, name, path, 'rb')
-            pay_keyb = types.InlineKeyboardMarkup()
-            pay_keyb.add(types.InlineKeyboardButton('Pay', callback_data='pay'))
-            msg = bot.send_photo(chat_id, photo, caption=caption, reply_markup=pay_keyb)
-            add_sent(chat_id, msg.message_id)
-        except Exception as e:
-            print("Error sending product:", e)
+            bot.delete_message(chat_id, id_mes)
+        except:
+            pass
+    list_curent_id.clear()
 
-# =========================
-# /start handler
-# =========================
+# ==============================
+# Handlers
+# ==============================
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    chat_id = message.chat.id
     first_name = message.chat.first_name or ""
     try:
-        if os.path.exists("imgs/logo.jpg"):
-            with open("imgs/logo.jpg", 'rb') as photo:
-                bot.send_photo(chat_id, photo)
-    except Exception as e:
-        print("Error sending logo:", e)
+        with open("imgs/logo.jpg", 'rb') as photo:
+            bot.send_photo(message.chat.id, photo)
+    except:
+        pass
     bot.reply_to(message, f"{first_name}, welcome to the Chess Shop. Enjoy it!")
-    msg = bot.send_message(chat_id, "Please choose an option:", reply_markup=main_keyboard)
-    add_sent(chat_id, msg.message_id)
+    bot.send_message(message.chat.id, "Please choose an option:", reply_markup=main_keyboard)
 
-# =========================
-# Text handler
-# =========================
 @bot.message_handler(content_types=['text'])
 def get_text(message):
-    chat_id = message.chat.id
-    clear_sent(chat_id)
-    if message.text == "Shop items":
-        keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton('Chess boards', callback_data='chess_board'),
-                     types.InlineKeyboardButton('Chess pieces', callback_data='chess_piece'))
-        keyboard.add(types.InlineKeyboardButton('Chess clocks', callback_data='chess_clock'))
-        msg = bot.send_message(chat_id, "Select a items category:", reply_markup=keyboard)
-        add_sent(chat_id, msg.message_id)
-    elif message.text == "Share this bot":
-        bot.send_message(chat_id, "https://t.me/chess_shop_bot")
+    global list_curent_id
+    if message.text == 'Shop items':
+        list_curent_id.append(message.message_id)
+        inline_keyboard = types.InlineKeyboardMarkup()
+        inline_keyboard.add(
+            types.InlineKeyboardButton('Chess boards', callback_data='chess_board'),
+            types.InlineKeyboardButton('Chess pieces', callback_data='chess_piece')
+        )
+        inline_keyboard.add(types.InlineKeyboardButton('Chess clocks', callback_data='chess_clock'))
+        del_mes(message.chat.id)
+        msg = bot.send_message(message.chat.id, "Select a items category:", reply_markup=inline_keyboard)
+        list_curent_id.append(msg.message_id)
 
-# =========================
-# Callback queries
-# =========================
-@bot.callback_query_handler(lambda c: True)
+    elif message.text == 'Share this bot':
+        list_curent_id.append(message.message_id)
+        bot.send_message(message.chat.id, "https://t.me/chess_shop_bot")
+
+@bot.callback_query_handler(lambda a: True)
 def get_query(query):
-    chat_id = query.message.chat.id
-    clear_sent(chat_id)
+    global list_curent_id
     print("Callback data:", query.data)
 
-    if query.data in ["chess_board", "chess_piece", "chess_clock"]:
-        keyboard = types.InlineKeyboardMarkup()
-        if query.data == "chess_board":
-            keyboard.add(types.InlineKeyboardButton('Classic', callback_data='board_classic'),
-                         types.InlineKeyboardButton('3 players', callback_data='board_3p'))
-            keyboard.add(types.InlineKeyboardButton('4 players', callback_data='board_4p'),
-                         types.InlineKeyboardButton('Customise', callback_data='board_custom'))
-        elif query.data == "chess_piece":
-            keyboard.add(types.InlineKeyboardButton('Classic pieces', callback_data='pieces_classic'),
-                         types.InlineKeyboardButton('Stylised for the royal period', callback_data='pieces_royal'))
-            keyboard.add(types.InlineKeyboardButton('From the Harry Potter movie', callback_data='pieces_Potter'))
-        elif query.data == "chess_clock":
-            keyboard.add(types.InlineKeyboardButton('Mechanical clock', callback_data='clock_mechanical'),
-                         types.InlineKeyboardButton('Electronic clock', callback_data='clock_electronic'))
-            keyboard.add(types.InlineKeyboardButton('Custom clock', callback_data='clock_custom'))
-        msg = bot.send_message(chat_id, "Select a items subcategory:", reply_markup=keyboard)
-        add_sent(chat_id, msg.message_id)
+    if query.data == 'chess_board':
+        sub_inline_keyboard = types.InlineKeyboardMarkup()
+        sub_inline_keyboard.add(
+            types.InlineKeyboardButton('Classic', callback_data='board_classic'),
+            types.InlineKeyboardButton('3 players', callback_data='board_3p')
+        )
+        sub_inline_keyboard.add(
+            types.InlineKeyboardButton('4 players', callback_data='board_4p'),
+            types.InlineKeyboardButton('Customise', callback_data='board_custom')
+        )
+        del_mes(query.message.chat.id)
+        msg = bot.send_message(query.message.chat.id, "Select a items subcategory:", reply_markup=sub_inline_keyboard)
+        list_curent_id.append(msg.message_id)
+
+    elif query.data == 'chess_piece':
+        sub_inline_keyboard = types.InlineKeyboardMarkup()
+        sub_inline_keyboard.add(
+            types.InlineKeyboardButton('Classic pieces', callback_data='pieces_classic'),
+            types.InlineKeyboardButton('Stylised for the royal period', callback_data='pieces_royal')
+        )
+        sub_inline_keyboard.add(
+            types.InlineKeyboardButton('From the Harry Potter movie', callback_data='pieces_Potter')
+        )
+        del_mes(query.message.chat.id)
+        msg = bot.send_message(query.message.chat.id, "Select a items subcategory:", reply_markup=sub_inline_keyboard)
+        list_curent_id.append(msg.message_id)
+
+    elif query.data == 'chess_clock':
+        sub_inline_keyboard = types.InlineKeyboardMarkup()
+        sub_inline_keyboard.add(
+            types.InlineKeyboardButton('Mechanical clock', callback_data='clock_mechanical'),
+            types.InlineKeyboardButton('Electronic clock', callback_data='clock_electronic')
+        )
+        sub_inline_keyboard.add(
+            types.InlineKeyboardButton('Custom clock', callback_data='clock_custom')
+        )
+        del_mes(query.message.chat.id)
+        msg = bot.send_message(query.message.chat.id, "Select a items subcategory:", reply_markup=sub_inline_keyboard)
+        list_curent_id.append(msg.message_id)
 
     elif query.data in category_paths:
-        load_prod(category_paths[query.data], chat_id)
+        del_mes(query.message.chat.id)
+        load_prod(category_paths[query.data], query.message.chat.id)
 
-    elif query.data == "pay":
-        code = "#" + "".join(str(randint(0, 9)) for _ in range(7))
-        bot.answer_callback_query(query.id, "Product purchased")
-        bot.send_message(chat_id, f"Your order number: {code}")
+    elif query.data == 'pay':
+        id_code = '#' + ''.join(str(randint(0, 9)) for _ in range(7))
+        bot.answer_callback_query(query.id, 'Product purchased')
+        bot.send_message(query.message.chat.id, f"Your order number: {id_code}")
 
-# =========================
-# Webhook route
-# =========================
+# ==============================
+# Flask app for Render
+# ==============================
+app = Flask(__name__)
+
 @app.route(f"/{TOKEN}", methods=["POST"])
-def webhook():
+def telegram_webhook():
     json_str = request.get_data().decode("UTF-8")
     update = telebot.types.Update.de_json(json_str)
     bot.process_new_updates([update])
@@ -163,16 +180,12 @@ def webhook():
 def index():
     return "Chess Shop Bot is running!", 200
 
-# =========================
-# Set webhook on startup
-# =========================
-bot.remove_webhook()
-bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
-print(f"✅ Webhook set to {APP_URL}/{TOKEN}")
-
-# =========================
-# Run Flask
-# =========================
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+# ==============================
+# Set webhook on import (Render)
+# ==============================
+try:
+    bot.remove_webhook()
+    bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
+    print(f"✅ Webhook set to {APP_URL}/{TOKEN}")
+except Exception as e:
+    print("Webhook error:", e)

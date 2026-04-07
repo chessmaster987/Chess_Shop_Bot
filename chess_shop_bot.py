@@ -15,10 +15,8 @@ load_dotenv()
 
 TOKEN = os.environ.get("BOT_TOKEN") 
 print("TOKEN:", TOKEN)
+APP_URL = os.environ.get("APP_URL")
 bot = telebot.TeleBot(TOKEN)
-
-# Replace YOUR_TOKEN with the token provided by BotFather
-#bot = telebot.TeleBot('[here paste your token]')
 
 main_keyboard = types.ReplyKeyboardMarkup().add("Shop items", "Share this bot")
 
@@ -171,7 +169,12 @@ def get_query(query):
 
 app = Flask(__name__)
 
-APP_URL = os.environ.get("APP_URL")  # додай цю змінну у Render → Environment
+# =========================
+# START MESSAGE
+# =========================
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Welcome to Chess Shop!")
 
 # =========================
 # ROUTE ДЛЯ TELEGRAM
@@ -184,16 +187,12 @@ def telegram_webhook():
     bot.process_new_updates([update])
     return "OK", 200
 
+# ====== set webhook manually ======
 @app.route("/")
-def index():
-   return "Bot is running!", 200
-
-# =========================
-# START MESSAGE
-# =========================
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Welcome to Chess Shop!")
+def set_webhook():
+    bot.remove_webhook()
+    bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
+    return "Webhook set!", 200
 
 # =========================
 # MAIN (Render)

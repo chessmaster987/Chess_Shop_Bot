@@ -12,6 +12,7 @@ A Telegram bot for browsing chess products (boards, pieces, clocks) with a simpl
 ## 📖 Table of Contents
 
 - [Features](#-features)
+- [Bot Flow](#-bot-flow)
 - [Menu Structure](#-menu-structure)
 - [Project Structure](#-project-structure)
 - [Installation](#%EF%B8%8F-installation)
@@ -33,6 +34,44 @@ A Telegram bot for browsing chess products (boards, pieces, clocks) with a simpl
 
 ---
 
+## 🧭 Bot Flow
+
+Below is a visual representation of how the user interacts with the bot:
+
+![Bot Flow](imgs/flow.png)
+
+### 🔹 Flow Description
+
+1. **Welcome Stage**
+   - User starts the bot with `/start`
+   - Bot sends **logo image**
+   - Displays main menu:
+     - Products
+     - Share Bot
+
+2. **Share**
+   - User can copy and send bot link:
+     - https://t.me/chess_shop_bot
+
+3. **Browse Products**
+   - Categories:
+     - Boards
+     - Pieces
+     - Chess Clocks
+
+4. **Boards → Subcategories**
+   - Classic
+   - 3-Player Boards
+   - 4-Player Boards
+   - Custom (e.g. Space-Themed Boards)
+
+5. **Product Page**
+   - Product image
+   - Description (from `.txt`)
+   - "Add to Cart" button
+
+---
+
 ## 📊 Menu Structure
 - /start
   - Shop items
@@ -40,16 +79,16 @@ A Telegram bot for browsing chess products (boards, pieces, clocks) with a simpl
       - Classic
       - 3 players
       - 4 players
-    - Customise
-      - Chess pieces
-        - Classic
-        - Royal period
-        - Harry Potter
-      - Chess clocks
-        - Mechanical
-        - Electronic
-        - Custom
-    - Share this bot
+      - Custom boards
+    - Chess pieces
+      - Classic pieces
+      - Royal period
+      - Harry Potter
+    - Chess clocks
+      - Mechanical
+      - Electronic
+      - Custom
+  - Share this bot
 
 ---
 
